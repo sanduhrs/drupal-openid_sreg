@@ -1,0 +1,80 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * OpenID SREG install routines.
+ * 
+ * @author
+ * Stefan Auditor <stefan.auditor@erdfisch.de>
+ */
+
+function openid_sreg_enable() {
+  // As no optional reqiurements are possible in the .install, we inform the user after enabling OpenID SREG
+  if (!module_exists('openid_provider')) { 
+    drupal_set_message(t('If you want to use the Provider part of OpenID Simple Registration, you need to install and enable the !link.', array('!link' => l('OpenID Provider module', 'http://drupal.org/project/openid_provider'))));
+  }
+  if (!module_exists('openid')) {
+    drupal_set_message(t('If you want to use the Consumer part of OpenID Simple Registration, you need to activate the !link.', array('!link' => l('OpenID module', 'admin/build/modules'))));
+  }  
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function openid_sreg_schema() {
+  $schema['openid_sreg'] = array(
+    'description' => t('A list of attributes served by the Attribute Exchange'),
+    'fields' => array(
+      'uid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('Primary Key: Unique user ID.'),
+      ),
+      'identifier' => array(
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('SREG Attribute identifier.'),
+      ),
+      'value' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('SREG Attribute value.'),
+      ),
+    ),
+    'indexes' => array(
+      'uid' => array('uid'),
+      'identifier' => array('identifier'),
+      'value' => array('value'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install()
+ */
+function openid_sreg_install() {
+  // Create tables.
+  drupal_install_schema('openid_sreg');
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function openid_sreg_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('openid_sreg');
+  
+  // Remove system variables
+  variable_del('openid_sreg_response_required');
+  variable_del('openid_sreg_response_optional');
+  variable_del('openid_sreg_request_required');
+  variable_del('openid_sreg_request_optional');
+  variable_del('openid_sreg_request_policy_url');
+}

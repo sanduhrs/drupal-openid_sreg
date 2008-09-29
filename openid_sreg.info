@@ -1,0 +1,7 @@
+; $Id$
+name = "OpenID Simple Registration"
+description = "OpenID Simple Registration support allows for very light-weight profile exchange."
+core = 6.x
+;There is no way to give optional dependencies
+;dependencies[] = openid
+;dependencies[] = openid_provider
