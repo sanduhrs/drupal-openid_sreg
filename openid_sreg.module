@@ -106,7 +106,7 @@ function openid_sreg_menu() {
 /**
  * Implementation of hook_openid()
  */
-function openid_sreg_openid($op, $request = array(), $response = array()) {
+function openid_sreg_openid($op, $response = array(), $request = array()) {
   module_load_include('inc', 'openid_sreg');
 
   switch ($op) {
