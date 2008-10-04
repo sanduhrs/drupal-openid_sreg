@@ -108,7 +108,7 @@ function openid_sreg_menu() {
  */
 function openid_sreg_openid($op, $response = array(), $request = array()) {
   module_load_include('inc', 'openid_sreg');
-
+  
   switch ($op) {
     case 'request':
       if ($request['openid.mode'] == 'checkid_immediate' || $request['openid.mode'] == 'checkid_setup') {
@@ -119,7 +119,7 @@ function openid_sreg_openid($op, $response = array(), $request = array()) {
     case 'response':
       // Need to patch openid_provider.module,
       // see http://drupal.org/node/313166
-      if ($response['openid.mode'] == 'id_res') {
+      if ($request['openid.mode'] == 'id_res') {
         // Generate a response
         $query = openid_sreg_generate_response($request, $response);
         return $query;                    
@@ -177,8 +177,6 @@ function openid_sreg_user($op, &$edit, &$account, $category = NULL) {
       }
       break;
     case 'insert':
-      //drupal_set_message('<pre>TODO: save attributes: '. print_r($response, 1) .'</pre>');
-      //drupal_set_message('<pre>TODO: user: '. print_r($account, 1) .'</pre>');
       openid_sreg_save_attributes($account->uid, $attributes);
       break;
     case 'delete':
