@@ -111,8 +111,8 @@ function openid_sreg_openid($op, $response = array(), $request = array()) {
   
   switch ($op) {
     case 'request':
-      if ($request['openid.mode'] == 'checkid_immediate' || $request['openid.mode'] == 'checkid_setup') {
-        $query = openid_sreg_generate_request($request);
+      if ($response['openid.mode'] == 'checkid_immediate' || $response['openid.mode'] == 'checkid_setup') {
+        $query = openid_sreg_generate_request($response);
         return $query;
       }
       break;
