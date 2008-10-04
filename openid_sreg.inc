@@ -45,12 +45,20 @@ function openid_sreg_generate_response($request = array(), $response = array(), 
     $query['openid.ns.sreg'] = OPENID_SREG_1_1;
     
     // Collect attributes
-    $attributes = openid_sreg_user_get_attributes($user);
-    // Change date format
-    $attributes['dob'] = $attributes['dob']['year'] .'-'. sprintf("%02d", $attributes['dob']['month']) .'-'. sprintf("%02d", $attributes['dob']['day']);
+    $attributes = openid_sreg_load_attributes($user);
     
+    // Add leading zeros to date
+    if ($attributes['dob']) {
+      $attributes['dob'] = $attributes['dob']['year'] .'-'. sprintf("%02d", $attributes['dob']['month']) .'-'. sprintf("%02d", $attributes['dob']['day']);
+    }
+    
+    // Return only  requested attributes
+    $required = isset($response['openid.sreg.required']) ? explode(',', $response['openid.sreg.required']) : array();
+    $optional = isset($response['openid.sreg.optional']) ? explode(',', $response['openid.sreg.optional']) : array();
     foreach ($attributes as $key => $value) {
-      $query['openid.sreg.'. $key] = $value;
+      if (in_array($key, $required) OR in_array($key, $optional)) {
+        $query['openid.sreg.'. $key] = $value;
+      }
     }
   }
 
@@ -58,18 +66,28 @@ function openid_sreg_generate_response($request = array(), $response = array(), 
 }
 
 /**
- * Generate keys from a query array
+ * Extract keys from a given namespace
+ *
+ * @param $keys Array of keys to extract from.
+ * @param $ns String namespace to extract
  */
-function openid_sreg_generate_keys($query = array()) {
-  $keys = array();
-  foreach ($query as $key => $value) {
-    $keys[] = str_replace('openid.', '', $key);
+function openid_sreg_namespace_keys_extract($keys, $ns = 'sreg') {
+  $matches = array();
+  foreach ($keys as $key) {
+    // Strip possible prefix
+    $key = str_replace('openid.', '', $key);
+    // Extract the namespace keys
+    if ($key == 'ns.'. $ns OR substr($key, 0, 5) == $ns .'.') {
+      $matches[] = $key;
+    }
   }
-  return $keys;
+  return $matches;
 }
 
 /**
  * Load a user's attributes
+ * TODO: Integration with Profile and CCK
+ * Perhaps a hook an additional supporter module will do?
  */
 function openid_sreg_load_attributes($user) {
   $attributes = array();
@@ -77,12 +95,19 @@ function openid_sreg_load_attributes($user) {
   while ($row = db_fetch_object($result)) {
     $attributes[$row->identifier] = $row->value;
   }
-  $attributes['dob'] = unserialize($attributes['dob']);
-  return $attributes;
+  // dob is a serialized date field
+  if ($attributes['dob']) {
+    $attributes['dob'] = unserialize($attributes['dob']);
+  }
+  $attributes['nickname'] = $user->name;
+  $attributes['email'] = $user->mail;
+  return count($attributes) ? $attributes : array();
 }
 
 /**
  * Save a user's attributes
+ * TODO: Integration with Profile and CCK
+ * Perhaps a hook an additional supporter module will do?
  */
 function openid_sreg_save_attributes($uid, $attributes) {
   $allowed_attributes = openid_sreg_get_attributes();
@@ -99,75 +124,6 @@ function openid_sreg_save_attributes($uid, $attributes) {
       db_query("INSERT INTO {openid_sreg} (uid, identifier, value) VALUES (%d, '%s', '%s')", $uid, $identifier, $value);
     }
   }
-}
-
-/**
- * Collect a user's attributes
- */
-function openid_sreg_user_get_attributes($user, $attribute = NULL) {
-  static $attributes = array();
-  
-  if (!$attributes) {
-    $attributes = openid_sreg_load_attributes($user);
-    
-    if (!$attributes['nickname']) {
-      $attributes['nickname'] = $user->name;
-    }
-    if (!$attributes['email']) {
-      $attributes['email']    = $user->mail;
-    }
-    
-    //TODO: Integration with profile and cck
-    $attributes['fullname'];
-    $attributes['dob'];
-    $attributes['gender'];
-    $attributes['postcode'];
-    
-    if (!$attributes['country']) {
-      $attributes['country'] = openid_sreg_user_get_country_code($user);
-    }
-    if (!$attributes['language']) {
-      // Language and timezone come from Drupal core
-      $attributes['language'] = openid_sreg_user_get_language($user);
-    }
-    
-    // It seems not possible to reliably determine a user's time zone in the desired format
-    $attributes['timezone'];
-  }
-
-  return $attribute ? $attributes[$attribute] : $attributes;
-}
-
-/**
- * Determine a user's country
- */
-function openid_sreg_user_get_country_code($user) {
-  // Check for user specific language setting
-  if ($user->language) {
-    $country_code = $user->language;
-  }
-  else {
-    // Or use default language used on the site
-    $lang = language_default();
-    $country_code = $lang->language;
-  }
-  return strtoupper($country_code);
-}
-
-/**
- * Determine a user's preffered language
- */
-function openid_sreg_user_get_language($user) {
-  if ($user->language) {
-    // Check for user specific language setting
-    $language = $user->language;
-  }
-  else {
-    // Or use default language used on the site
-    $lang = language_default();
-    $language = $lang->language;
-  }
-  return $language;
 }
 
 /**

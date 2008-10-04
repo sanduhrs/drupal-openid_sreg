@@ -46,7 +46,7 @@ function openid_sreg_menu() {
   $items['my_openid_sreg'] = array(
     'title' => 'My OpenID Simple Registration',
     'page callback' => 'openid_sreg_profile_page',
-    'access arguments' => array('access own SREG page') ? array('access own SREG page') : array('edit own SREG page'),
+    'access arguments' => array('access own sreg page'),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'openid_sreg.pages.inc',
   );
@@ -119,18 +119,16 @@ function openid_sreg_openid($op, $response = array(), $request = array()) {
     case 'response':
       // Need to patch openid_provider.module,
       // see http://drupal.org/node/313166
-      if ($request['openid.mode'] == 'id_res') {
+      if ($request['openid.mode'] == 'id_res' AND $response['openid.ns.sreg'] == OPENID_SREG_1_1) {
         // Generate a response
         $query = openid_sreg_generate_response($request, $response);
         return $query;                    
       }
       break;
     case 'signed':
-      if ($request['openid.mode'] == 'id_res') {
-        // Get the previously generated cached response
-        $query = openid_sreg_generate_response();
+      if ($response['openid.mode'] == 'id_res') {
         // Generate signable keys
-        $keys_to_sign = openid_sreg_generate_keys($query);
+        $keys_to_sign = openid_sreg_namespace_keys_extract(array_keys($response));
         return $keys_to_sign;
       }
       break;

@@ -15,14 +15,13 @@
  * TODO: Add the nice tabledrag functionality to this page and let
  * the admins drag the items from required <> optional <> disabled.
  * See ?q=admin/build/block
- * TODO: Add mapping to Profile and CCK fields
  */
 function openid_sreg_admin_settings_form() {
   $form = array();
   module_load_include('inc', 'openid_sreg');
 
-  //TODO: Only display if necessary
-  if (FALSE AND module_exists('openid_provider')) {
+  // Only display if necessary
+  if (module_exists('openid_provider')) {
     $form['openid_sreg']['response'] = array(
       '#type' => 'fieldset',
       '#title' => t('Provider settings'),
@@ -97,6 +96,8 @@ function openid_sreg_profile_form($form_state, $user) {
   module_load_include('inc', 'openid_sreg');
   
   $attributes = openid_sreg_get_attributes();
+  $user_attributes = openid_sreg_load_attributes($user);
+  
   $form_state['storage']['uid'] = $user->uid;
   $form['account'] = array(
     '#type' => 'fieldset',
@@ -116,7 +117,7 @@ function openid_sreg_profile_form($form_state, $user) {
         $form['account'][$attribute] = array(
           '#type' => 'textfield',
           '#title' => $values['label'],
-          '#default_value' => openid_sreg_user_get_attributes($user, $attribute),
+          '#default_value' => $user_attributes[$attribute],
           '#description' => t('!description, e.g. !example.', array('!description' => $attributes[$element]['description'], '!example' => $attributes[$element]['example'])),
           '#attributes' => array('disabled' => 'disabled'),
         );
@@ -124,7 +125,7 @@ function openid_sreg_profile_form($form_state, $user) {
         $form['account'][$attribute] = array(
           '#type' => 'textfield',
           '#title' => $values['label'],
-          '#default_value' => openid_sreg_user_get_attributes($user, $attribute),
+          '#default_value' => $user_attributes[$attribute],
           '#description' => t('!description, e.g. !example.', array('!description' => $attributes[$element]['description'], '!example' => $attributes[$element]['example'])),
           '#attributes' => array('disabled' => 'disabled'),
         );
@@ -133,7 +134,7 @@ function openid_sreg_profile_form($form_state, $user) {
         $form['personal'][$attribute] = array(
           '#type' => 'date',
           '#title' => $values['label'],
-          '#default_value' => openid_sreg_user_get_attributes($user, $attribute),
+          '#default_value' => $user_attributes[$attribute],
           '#description' => t('!description, e.g. !example.', array('!description' => $attributes[$element]['description'], '!example' => $attributes[$element]['example'])),
           '#attributes' => user_access('edit own sreg page') ? NULL : array('disabled' => 'disabled'),
         );
@@ -142,7 +143,7 @@ function openid_sreg_profile_form($form_state, $user) {
         $form['personal'][$attribute] = array(
           '#type' => 'select',
           '#title' => $values['label'],
-          '#default_value' => openid_sreg_user_get_attributes($user, $attribute),
+          '#default_value' => $user_attributes[$attribute],
           '#description' => t('!description, e.g. !example.', array('!description' => $attributes[$element]['description'], '!example' => $attributes[$element]['example'])),
           '#options' => array('F' => t('female'), 'M' => t('male')),
           '#attributes' => user_access('edit own sreg page') ? NULL : array('disabled' => 'disabled'),
@@ -152,7 +153,7 @@ function openid_sreg_profile_form($form_state, $user) {
         $form['personal'][$attribute] = array(
           '#type' => 'select',
           '#title' => $values['label'],
-          '#default_value' => openid_sreg_user_get_attributes($user, $attribute),
+          '#default_value' => $user_attributes[$attribute],
           '#description' => t('!description, e.g. !example.', array('!description' => $attributes[$element]['description'], '!example' => $attributes[$element]['example'])),
           '#options' => drupal_map_assoc(openid_sreg_get_timezones()),
           '#attributes' => user_access('edit own sreg page') ? NULL : array('disabled' => 'disabled'),
@@ -162,7 +163,7 @@ function openid_sreg_profile_form($form_state, $user) {
         $form['personal'][$attribute] = array(
           '#type' => 'select',
           '#title' => $values['label'],
-          '#default_value' => openid_sreg_user_get_attributes($user, $attribute),
+          '#default_value' => $user_attributes[$attribute],
           '#description' => t('!description, e.g. !example.', array('!description' => $attributes[$element]['description'], '!example' => $attributes[$element]['example'])),
           '#options' => openid_sreg_get_country_codes(),
           '#attributes' => user_access('edit own sreg page') ? NULL : array('disabled' => 'disabled'),
@@ -172,7 +173,7 @@ function openid_sreg_profile_form($form_state, $user) {
         $form['personal'][$attribute] = array(
           '#type' => 'select',
           '#title' => $values['label'],
-          '#default_value' => openid_sreg_user_get_attributes($user, $attribute),
+          '#default_value' => $user_attributes[$attribute],
           '#description' => t('!description, e.g. !example.', array('!description' => $attributes[$element]['description'], '!example' => $attributes[$element]['example'])),
           '#options' => openid_sreg_locale_prepare_predefined_list(),
           '#attributes' => user_access('edit own sreg page') ? NULL : array('disabled' => 'disabled'),
@@ -182,7 +183,7 @@ function openid_sreg_profile_form($form_state, $user) {
         $form['personal'][$attribute] = array(
           '#type' => 'textfield',
           '#title' => $values['label'],
-          '#default_value' => openid_sreg_user_get_attributes($user, $attribute),
+          '#default_value' => $user_attributes[$attribute],
           '#description' => t('!description, e.g. !example.', array('!description' => $attributes[$element]['description'], '!example' => $attributes[$element]['example'])),
           '#attributes' => user_access('edit own sreg page') ? NULL : array('disabled' => 'disabled'),
         );
