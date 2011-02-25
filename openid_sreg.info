@@ -1,4 +1,3 @@
-; $Id$
 name = "OpenID Simple Registration"
 description = "OpenID Simple Registration support allows for very light-weight profile exchange."
 core = 6.x

@@ -1,4 +1,3 @@
-// $Id$
 
 OpenID Simple Registration Extension (SREG)
 -------------------------------------------
